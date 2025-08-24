@@ -7,29 +7,34 @@ import plotly.express as px
 # Infosys FY2025 Base Data (₹ crore, consolidated)
 # -------------------------
 default_base_data = {
-    "Revenue": 162990,
-    "COGS": 113347,
-    "SG&A": 7588 + 7631,   # Selling + G&A
-    "R&D": 1296,
-    "EBIT": 34424,
-    "D&A": 4812,
-    "CapEx": 2237,
-    "ΔNWC": 3611,
-    "Tax Expense": 10858,
+    "Revenue": 162990.0,
+    "COGS": 113347.0,
+    "SG&A": 7588.0 + 7631.0,   # Selling + G&A
+    "R&D": 1296.0,
+    "EBIT": 34424.0,
+    "D&A": 4812.0,
+    "CapEx": 2237.0,
+    "ΔNWC": 3611.0,
+    "Tax Expense": 10858.0,
     "Tax Rate": 0.2887,
     "Shares Diluted": 4152051184 / 1e7,  # scaled to crore (₹ per share later)
 }
+
+# Session state init
+if "base_data" not in st.session_state:
+    st.session_state.base_data = default_base_data.copy()
 
 # Sidebar section for base data
 st.sidebar.header("Company base data (from FY2025, consolidated)")
 st.sidebar.caption("Defaults are Infosys FY2025 consolidated values — editable if you want to override.")
 
+if st.sidebar.button("Reset to Infosys FY2025 defaults"):
+    st.session_state.base_data = default_base_data.copy()
+
 base_data = {}
-for key, val in default_base_data.items():
-    if isinstance(val, float):
-        base_data[key] = st.sidebar.number_input(key, value=val, format="%.4f")
-    else:
-        base_data[key] = st.sidebar.number_input(key, value=val, format="%.0f")
+for key, val in st.session_state.base_data.items():
+    base_data[key] = st.sidebar.number_input(key, value=float(val), format="%.4f")
+st.session_state.base_data = base_data  # update session state after edits
 
 # Derived margins
 margins = {
@@ -44,15 +49,15 @@ margins = {
 # Streamlit Sidebar Inputs
 # -------------------------
 st.sidebar.header("Line-item margins (defaults from FY2025)")
-cogs_pct = st.sidebar.number_input("COGS % of revenue", value=margins["cogs_pct"], format="%.4f")
-sgna_pct = st.sidebar.number_input("SG&A % of revenue", value=margins["sgna_pct"], format="%.4f")
-rnd_pct = st.sidebar.number_input("R&D % of revenue", value=margins["rnd_pct"], format="%.4f")
-da_pct = st.sidebar.number_input("D&A % of revenue", value=margins["da_pct"], format="%.4f")
-capex_pct = st.sidebar.number_input("CapEx % of revenue", value=margins["capex_pct"], format="%.4f")
+cogs_pct = st.sidebar.number_input("COGS % of revenue", value=float(margins["cogs_pct"]), format="%.4f")
+sgna_pct = st.sidebar.number_input("SG&A % of revenue", value=float(margins["sgna_pct"]), format="%.4f")
+rnd_pct = st.sidebar.number_input("R&D % of revenue", value=float(margins["rnd_pct"]), format="%.4f")
+da_pct = st.sidebar.number_input("D&A % of revenue", value=float(margins["da_pct"]), format="%.4f")
+capex_pct = st.sidebar.number_input("CapEx % of revenue", value=float(margins["capex_pct"]), format="%.4f")
 
 st.sidebar.header("Working capital & tax")
 use_actual_nwc = st.sidebar.checkbox(f"Use observed ΔNWC FY2025 (₹{int(base_data['ΔNWC']):,} Cr)", value=True)
-tax_rate = st.sidebar.number_input("Effective tax rate", value=base_data["Tax Rate"], format="%.4f")
+tax_rate = st.sidebar.number_input("Effective tax rate", value=float(base_data["Tax Rate"]), format="%.4f")
 
 st.sidebar.header("Discounting / Terminal")
 wacc = st.sidebar.slider("WACC (decimal)", 0.06, 0.15, 0.10)
@@ -113,7 +118,6 @@ st.title("Interactive DCF — Infosys Limited (INFY)")
 st.caption("Source: Consolidated FY2024–25 annual report (₹ crore). No assumptions beyond reported line-items.")
 
 st.subheader("Valuation Summary (₹ crore)")
-
 st.write(f"**Enterprise Value (Gordon growth)**: ₹{ev_gordon:,.2f} Cr")
 st.write(f"**Enterprise Value (EBITDA multiple)**: ₹{ev_multiple:,.2f} Cr")
 st.write(f"**PV of FCFs**: ₹{pv_fcfs:,.2f} Cr")
@@ -153,3 +157,4 @@ fig = px.imshow(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
