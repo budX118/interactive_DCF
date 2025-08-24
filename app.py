@@ -1,80 +1,112 @@
-# app.py
 import streamlit as st
-import numpy as np
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Interactive DCF Model", layout="wide")
+# ---------------------------
+# Helper function to format numbers
+# ---------------------------
+def human_format(num):
+    if abs(num) >= 1_000_000_000:
+        return f"${num/1_000_000_000:.2f}B"
+    elif abs(num) >= 1_000_000:
+        return f"${num/1_000_000:.2f}M"
+    elif abs(num) >= 1_000:
+        return f"${num/1_000:.2f}K"
+    else:
+        return f"${num:.2f}"
 
-st.title("Interactive DCF Valuation Model")
+# ---------------------------
+# Page config
+# ---------------------------
+st.set_page_config(
+    page_title="Apple DCF Valuation",
+    page_icon="🍎",
+    layout="wide"
+)
 
-# -------------------------
-# Sidebar inputs
-# -------------------------
-st.sidebar.header("Input Assumptions")
-
-revenue_now = st.sidebar.number_input("Current Revenue ($M)", min_value=10.0, value=500.0, step=10.0)
-ebitda_margin = st.sidebar.slider("EBITDA Margin (%)", 0, 80, 30)
-growth_rate = st.sidebar.slider("Revenue Growth Rate (YoY %)", 0, 50, 10)
-tax_rate = st.sidebar.slider("Tax Rate (%)", 0, 50, 25)
-capex_percent = st.sidebar.slider("CapEx (% of Revenue)", 0, 30, 5)
-wc_percent = st.sidebar.slider("Change in Working Capital (% of Revenue)", 0, 30, 2)
-discount_rate = st.sidebar.slider("Discount Rate (WACC %) ", 1, 20, 10)
-terminal_growth = st.sidebar.slider("Terminal Growth Rate (%)", 0, 5, 2)
-projection_years = st.sidebar.slider("Projection Years", 3, 10, 5)
-
-# -------------------------
-# Build projections
-# -------------------------
-years = np.arange(1, projection_years + 1)
-revenues = [revenue_now * ((1 + growth_rate / 100) ** i) for i in years]
-ebitda = [rev * ebitda_margin / 100 for rev in revenues]
-ebit = [e * (1 - tax_rate / 100) for e in ebitda]
-capex = [rev * capex_percent / 100 for rev in revenues]
-wc = [rev * wc_percent / 100 for rev in revenues]
-
-fcf = [ebit[i] - capex[i] - wc[i] for i in range(projection_years)]
-discount_factors = [(1 / ((1 + discount_rate / 100) ** yr)) for yr in years]
-discounted_fcf = [fcf[i] * discount_factors[i] for i in range(projection_years)]
-
-# Terminal value
-terminal_value = fcf[-1] * (1 + terminal_growth / 100) / ((discount_rate / 100) - (terminal_growth / 100))
-discounted_terminal = terminal_value * discount_factors[-1]
-
-# Enterprise value
-enterprise_value = sum(discounted_fcf) + discounted_terminal
-
-# -------------------------
-# Results Display
-# -------------------------
-col1, col2 = st.columns(2)
-
+# ---------------------------
+# Header with Apple branding
+# ---------------------------
+col1, col2 = st.columns([1, 5])
 with col1:
-    st.subheader("DCF Summary")
-    st.metric("Enterprise Value ($M)", f"{enterprise_value:,.0f}")
-    st.write("**Breakdown**")
-    st.write(f"Present Value of FCFs: ${sum(discounted_fcf):,.0f}M")
-    st.write(f"Terminal Value (discounted): ${discounted_terminal:,.0f}M")
-
+    st.image("https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg", width=80)
 with col2:
-    st.subheader("Projections Table")
-    df = pd.DataFrame({
-        "Year": years,
-        "Revenue ($M)": revenues,
-        "EBITDA ($M)": ebitda,
-        "FCF ($M)": fcf,
-        "Discounted FCF ($M)": discounted_fcf
-    })
-    st.dataframe(df.style.format("{:,.0f}"))
+    st.title("Interactive DCF Valuation Model")
+    st.subheader("Apple Inc. (NASDAQ: AAPL)")
 
-# -------------------------
+st.markdown("---")
+
+# ---------------------------
+# Sidebar Inputs
+# ---------------------------
+st.sidebar.header("Assumptions")
+
+revenue_growth = st.sidebar.slider("Revenue Growth Rate (%)", 2, 15, 10)
+discount_rate = st.sidebar.slider("Discount Rate (%)", 5, 15, 10)
+terminal_growth = st.sidebar.slider("Terminal Growth Rate (%)", 1, 5, 3)
+projection_years = st.sidebar.slider("Projection Years", 3, 10, 5)
+starting_revenue = st.sidebar.number_input("Starting Revenue ($M)", value=500.0, step=50.0)
+fcf_margin = st.sidebar.slider("Free Cash Flow Margin (%)", 5, 40, 20)
+
+# ---------------------------
+# DCF Calculation
+# ---------------------------
+years = np.arange(1, projection_years + 1)
+revenues = [starting_revenue * (1 + revenue_growth/100) ** i for i in years]
+fcfs = [rev * (fcf_margin/100) for rev in revenues]
+discount_factors = [(1 + discount_rate/100) ** i for i in years]
+present_values = [fcf / df for fcf, df in zip(fcfs, discount_factors)]
+
+# Terminal Value
+terminal_value = (fcfs[-1] * (1 + terminal_growth/100)) / (discount_rate/100 - terminal_growth/100)
+pv_terminal = terminal_value / ((1 + discount_rate/100) ** projection_years)
+
+enterprise_value = sum(present_values) + pv_terminal
+
+# ---------------------------
+# Valuation Summary
+# ---------------------------
+st.header("Valuation Summary")
+
+c1, c2, c3 = st.columns(3)
+c1.metric("Enterprise Value", human_format(enterprise_value))
+c2.metric("PV of FCFs", human_format(sum(present_values)))
+c3.metric("Terminal Value (PV)", human_format(pv_terminal))
+
+st.markdown("---")
+
+# ---------------------------
+# Projection Table
+# ---------------------------
+st.header("Projection Table")
+
+df = pd.DataFrame({
+    "Year": years,
+    "Revenue ($M)": revenues,
+    "FCF ($M)": fcfs,
+    "Discount Factor": discount_factors,
+    "PV of FCF ($M)": present_values
+})
+
+df = df.round(2)
+st.dataframe(df, use_container_width=True)
+
+# ---------------------------
 # Chart
-# -------------------------
+# ---------------------------
+st.header("Free Cash Flow Projection")
+
 fig = go.Figure()
-fig.add_trace(go.Bar(x=years, y=discounted_fcf, name="Discounted FCF"))
-fig.add_trace(go.Scatter(x=years, y=fcf, mode="lines+markers", name="FCF (Undiscounted)"))
-fig.update_layout(title="Free Cash Flow Projection", xaxis_title="Year", yaxis_title="$M")
+fig.add_trace(go.Bar(x=years, y=fcfs, name="Free Cash Flow", marker_color="lightblue"))
+fig.add_trace(go.Scatter(x=years, y=present_values, mode="lines+markers", name="PV of FCF", line=dict(color="blue")))
+
+fig.update_layout(
+    title="Apple FCF vs. Present Value",
+    xaxis_title="Year",
+    yaxis_title="Value ($M)",
+    template="plotly_white"
+)
 
 st.plotly_chart(fig, use_container_width=True)
 
-st.success("DCF Model Run Complete")
