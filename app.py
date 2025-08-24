@@ -6,7 +6,7 @@ import plotly.express as px
 default_base_data = {
     "Revenue": 162990.0,
     "COGS": 113347.0,
-    "SG&A": 7588.0 + 7631.0,   # Selling + G&A
+    "SG&A": 7588.0 + 7631.0,   
     "R&D": 1296.0,
     "EBIT": 34424.0,
     "D&A": 4812.0,
@@ -14,7 +14,7 @@ default_base_data = {
     "ΔNWC": 3611.0,
     "Tax Expense": 10858.0,
     "Tax Rate": 0.2887,
-    "Shares Diluted": 4152051184 / 1e7,  # scaled to crore (₹ per share later)
+    "Shares Diluted": 4152051184 / 1e7,  
 }
 
 # Session state init
@@ -22,8 +22,7 @@ if "base_data" not in st.session_state:
     st.session_state.base_data = default_base_data.copy()
 
 # -------------------------
-# Sidebar — Base Data Section
-# -------------------------
+
 with st.sidebar.expander("Company Base Data (FY2025, consolidated)", expanded=False):
     st.caption("Defaults are Infosys FY2025 values.")
 
@@ -45,8 +44,6 @@ margins = {
 }
 
 # -------------------------
-# Sidebar — Line-item Margins Section
-# -------------------------
 with st.sidebar.expander("Line-item Margins (defaults from FY2025)", expanded=False):
     cogs_pct = st.number_input("COGS % of revenue", value=float(margins["cogs_pct"]), format="%.4f")
     sgna_pct = st.number_input("SG&A % of revenue", value=float(margins["sgna_pct"]), format="%.4f")
@@ -54,8 +51,6 @@ with st.sidebar.expander("Line-item Margins (defaults from FY2025)", expanded=Fa
     da_pct = st.number_input("D&A % of revenue", value=float(margins["da_pct"]), format="%.4f")
     capex_pct = st.number_input("CapEx % of revenue", value=float(margins["capex_pct"]), format="%.4f")
 
-# -------------------------
-# Sidebar — Working Capital, Tax, Discounting
 # -------------------------
 st.sidebar.header("Working capital & tax")
 use_actual_nwc = st.sidebar.checkbox(f"Use observed ΔNWC FY2025 (₹{int(base_data['ΔNWC']):,} Cr)", value=True)
@@ -70,8 +65,7 @@ projection_years = st.sidebar.slider("Projection Years", 3, 10, 5)
 growth_rate = st.sidebar.slider("Revenue Growth Rate", 0.04, 0.12, 0.06)
 
 # -------------------------
-# Projections
-# -------------------------
+
 projections = []
 revenue = base_data["Revenue"]
 
@@ -95,8 +89,6 @@ for year in range(1, projection_years + 1):
 df = pd.DataFrame(projections, columns=["Year","Revenue","COGS","SG&A","R&D","EBITDA","D&A","EBIT","NOPAT","CapEx","ΔNWC","FCF","Discount Factor","PV FCF"])
 
 # -------------------------
-# Valuation
-# -------------------------
 pv_fcfs = df["PV FCF"].sum()
 terminal_value_gordon = (df.iloc[-1]["FCF"] * (1 + terminal_growth)) / (wacc - terminal_growth)
 pv_terminal_gordon = terminal_value_gordon / ((1 + wacc) ** projection_years)
@@ -114,8 +106,6 @@ per_share_gordon = (equity_value_gordon * 1e7) / base_data["Shares Diluted"]
 per_share_multiple = (equity_value_multiple * 1e7) / base_data["Shares Diluted"]
 
 # -------------------------
-# Output
-# -------------------------
 st.title("Interactive DCF: Infosys Limited (INFY)")
 st.caption("Source: Consolidated FY2024–25 annual report (₹ crore). No assumptions beyond reported line-items.")
 
@@ -131,8 +121,6 @@ st.write(f"**Equity Value per Share (Multiple)**: ₹{per_share_multiple:,.2f}")
 st.subheader("Projection Table (line-item)")
 st.dataframe(df.style.format("{:,.2f}"))
 
-# -------------------------
-# Sensitivity Plot
 # -------------------------
 st.subheader("Sensitivity (Interactive)")
 
@@ -153,7 +141,7 @@ fig = px.imshow(
     heatmap_data,
     x=[f"{g:.1%}" for g in tg_range],
     y=[f"{w:.1%}" for w in wacc_range],
-    color_continuous_scale="BrBG",  # blue-white-green diverging
+    color_continuous_scale="BrBG",  
     aspect="auto",
     labels=dict(x="Terminal Growth", y="WACC", color="₹/share"),
 )
