@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 
-# -------------------------
-# Infosys FY2025 Base Data (₹ crore, consolidated)
-# -------------------------
 default_base_data = {
     "Revenue": 162990.0,
     "COGS": 113347.0,
@@ -28,7 +25,7 @@ if "base_data" not in st.session_state:
 # Sidebar — Base Data Section
 # -------------------------
 with st.sidebar.expander("Company Base Data (FY2025, consolidated)", expanded=False):
-    st.caption("Defaults are Infosys FY2025 consolidated values — editable if you want to override.")
+    st.caption("Defaults are Infosys FY2025 values.")
 
     if st.button("Reset to Infosys FY2025 defaults"):
         st.session_state.base_data = default_base_data.copy()
@@ -119,7 +116,7 @@ per_share_multiple = (equity_value_multiple * 1e7) / base_data["Shares Diluted"]
 # -------------------------
 # Output
 # -------------------------
-st.title("Interactive DCF — Infosys Limited (INFY)")
+st.title("Interactive DCF: Infosys Limited (INFY)")
 st.caption("Source: Consolidated FY2024–25 annual report (₹ crore). No assumptions beyond reported line-items.")
 
 st.subheader("Valuation Summary (₹ crore)")
