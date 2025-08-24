@@ -285,7 +285,7 @@ else:
 st.markdown("---")
 st.subheader("Omitted items")
 st.write("""
-The model intentionally does not assume the following, as they are not present as explicit datapoints in the FY2025 consolidated values you provided (and per your instruction I will not invent them):
+The model intentionally does not assume the following, as they are not present as explicit datapoints in the FY2024-2025 consolidated values:
 
 • Detailed intra-year change in NWC schedule beyond the reported FY2025 YoY change in NWC (This only uses the observed FY2025 ΔNWC as first-year change if selected).  
 • Debt amortization schedule or future interest expense projections (This uses consolidated net debt only for EV→Equity conversion).  
