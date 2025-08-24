@@ -159,3 +159,16 @@ fig = px.imshow(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+st.markdown("---")
+st.subheader("Omitted items")
+st.write("""
+The model intentionally does not assume the following, as they are not present as explicit datapoints in the FY2024-2025 document:
+
+• Detailed intra-year change in NWC schedule beyond the reported FY2025 YoY change in NWC (This only uses the observed FY2025 ΔNWC as first-year change if selected).  
+• Debt amortization schedule or future interest expense projections (This uses consolidated net debt only for EV→Equity conversion).  
+• Share buyback / dilution schedules beyond the diluted weighted shares provided.  
+• Deferred tax asset / NOL schedules, pension liabilities, or off-balance-sheet items requiring managerial forecasts.  
+• granular revenue breakdowns and capex schedules.  
+• Any analyst consensus forecasts or guidance not present in the uploaded FY2025 report.
+""")
