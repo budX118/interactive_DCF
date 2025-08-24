@@ -7,17 +7,32 @@ import plotly.express as px
 # Infosys FY2025 Base Data (₹ crore, consolidated)
 # -------------------------
 default_base_data = {
-    "Revenue (₹ Cr)": 162990.0,
-    "COGS (₹ Cr)": 113347.0,
-    "SG&A (₹ Cr)": 7588.0 + 7631.0,   # Selling + G&A
-    "R&D (₹ Cr)": 1296.0,
-    "EBIT (₹ Cr)": 34424.0,
-    "D&A (₹ Cr)": 4812.0,
-    "CapEx (₹ Cr)": 2237.0,
-    "ΔNWC (₹ Cr)": 3611.0,
-    "Tax Expense (₹ Cr)": 10858.0,
-    "Effective Tax Rate": 0.2887,
-    "Shares Outstanding (Cr units)": 4152051184 / 1e7,  # scaled to crore
+    "Revenue": 162990.0,
+    "COGS": 113347.0,
+    "SG&A": 7588.0 + 7631.0,   # Selling + G&A
+    "R&D": 1296.0,
+    "EBIT": 34424.0,
+    "D&A": 4812.0,
+    "CapEx": 2237.0,
+    "ΔNWC": 3611.0,
+    "Tax Expense": 10858.0,
+    "Tax Rate": 0.2887,
+    "Shares": 4152051184 / 1e7,  # crore shares
+}
+
+# Display labels with units for sidebar
+labels = {
+    "Revenue": "Revenue (₹ Cr)",
+    "COGS": "COGS (₹ Cr)",
+    "SG&A": "SG&A (₹ Cr)",
+    "R&D": "R&D (₹ Cr)",
+    "EBIT": "EBIT (₹ Cr)",
+    "D&A": "D&A (₹ Cr)",
+    "CapEx": "CapEx (₹ Cr)",
+    "ΔNWC": "ΔNWC (₹ Cr)",
+    "Tax Expense": "Tax Expense (₹ Cr)",
+    "Tax Rate": "Effective Tax Rate",
+    "Shares": "Shares Outstanding (Cr units)",
 }
 
 # Session state init
@@ -35,19 +50,19 @@ with st.sidebar.expander("📊 Company Base Data (FY2025, consolidated)", expand
 
     base_data = {}
     for key, val in st.session_state.base_data.items():
-        if "Rate" in key:  # percentage inputs
-            base_data[key] = st.number_input(key, value=float(val), format="%.4f")
-        else:  # currency/absolute inputs
-            base_data[key] = st.number_input(key, value=float(val), format="%.2f")
-    st.session_state.base_data = base_data  # update session state after edits
+        if key == "Tax Rate":  # decimal input
+            base_data[key] = st.number_input(labels[key], value=float(val), format="%.4f")
+        else:
+            base_data[key] = st.number_input(labels[key], value=float(val), format="%.2f")
+    st.session_state.base_data = base_data  # update session state
 
 # Derived margins
 margins = {
-    "cogs_pct": base_data["COGS (₹ Cr)"] / base_data["Revenue (₹ Cr)"],
-    "sgna_pct": base_data["SG&A (₹ Cr)"] / base_data["Revenue (₹ Cr)"],
-    "rnd_pct": base_data["R&D (₹ Cr)"] / base_data["Revenue (₹ Cr)"],
-    "da_pct": base_data["D&A (₹ Cr)"] / base_data["Revenue (₹ Cr)"],
-    "capex_pct": base_data["CapEx (₹ Cr)"] / base_data["Revenue (₹ Cr)"],
+    "cogs_pct": base_data["COGS"] / base_data["Revenue"],
+    "sgna_pct": base_data["SG&A"] / base_data["Revenue"],
+    "rnd_pct": base_data["R&D"] / base_data["Revenue"],
+    "da_pct": base_data["D&A"] / base_data["Revenue"],
+    "capex_pct": base_data["CapEx"] / base_data["Revenue"],
 }
 
 # -------------------------
@@ -65,8 +80,8 @@ with st.sidebar.expander("⚙️ Line-item Margins (defaults from FY2025)", expa
 # Sidebar — Working Capital, Tax, Discounting
 # -------------------------
 st.sidebar.header("💰 Working Capital & Tax")
-use_actual_nwc = st.sidebar.checkbox(f"Use observed ΔNWC FY2025 (₹{int(base_data['ΔNWC (₹ Cr)']):,} Cr)", value=True)
-tax_rate = st.sidebar.number_input("Effective tax rate", value=float(base_data["Effective Tax Rate"]), format="%.4f")
+use_actual_nwc = st.sidebar.checkbox(f"Use observed ΔNWC FY2025 (₹{int(base_data['ΔNWC']):,} Cr)", value=True)
+tax_rate = st.sidebar.number_input("Effective tax rate", value=float(base_data["Tax Rate"]), format="%.4f")
 
 st.sidebar.header("📉 Discounting & Terminal Assumptions")
 wacc = st.sidebar.slider("WACC (decimal)", 0.06, 0.15, 0.10)
@@ -80,7 +95,7 @@ growth_rate = st.sidebar.slider("Revenue Growth Rate", 0.04, 0.12, 0.06)
 # Projections
 # -------------------------
 projections = []
-revenue = base_data["Revenue (₹ Cr)"]
+revenue = base_data["Revenue"]
 
 for year in range(1, projection_years + 1):
     revenue *= (1 + growth_rate)
@@ -92,7 +107,7 @@ for year in range(1, projection_years + 1):
     ebit = ebitda - da
     nopat = ebit * (1 - tax_rate)
     capex = revenue * capex_pct
-    nwc = base_data["ΔNWC (₹ Cr)"] if use_actual_nwc else 0
+    nwc = base_data["ΔNWC"] if use_actual_nwc else 0
     fcf = nopat + da - capex - nwc
     discount_factor = 1 / ((1 + wacc) ** year)
     pv_fcf = fcf * discount_factor
@@ -117,8 +132,8 @@ ev_multiple = pv_fcfs + pv_terminal_multiple
 equity_value_gordon = ev_gordon  # Infosys is net cash (no debt)
 equity_value_multiple = ev_multiple
 
-per_share_gordon = (equity_value_gordon * 1e7) / base_data["Shares Outstanding (Cr units)"]
-per_share_multiple = (equity_value_multiple * 1e7) / base_data["Shares Outstanding (Cr units)"]
+per_share_gordon = (equity_value_gordon * 1e7) / base_data["Shares"]
+per_share_multiple = (equity_value_multiple * 1e7) / base_data["Shares"]
 
 # -------------------------
 # Output
@@ -152,7 +167,7 @@ for w in wacc_range:
     for g in tg_range:
         tv = (df.iloc[-1]["FCF"] * (1 + g)) / (w - g)
         ev = pv_fcfs + tv / ((1 + w) ** projection_years)
-        ps = (ev * 1e7) / base_data["Shares Outstanding (Cr units)"]
+        ps = (ev * 1e7) / base_data["Shares"]
         row.append(ps)
     heatmap_data.append(row)
 
@@ -166,3 +181,4 @@ fig = px.imshow(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
