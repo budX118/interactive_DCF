@@ -283,18 +283,16 @@ else:
     st.plotly_chart(heat, use_container_width=True)
 
 st.markdown("---")
-st.subheader("Omitted / not-modeled items (explicit — no assumptions made)")
+st.subheader("Omitted items")
 st.write("""
-The model intentionally does NOT assume or invent the following because they are not present as explicit datapoints in the FY2025 consolidated values you provided (and per your instruction I will not invent them):
+The model intentionally does not assume the following, as they are not present as explicit datapoints in the FY2025 consolidated values you provided (and per your instruction I will not invent them):
 
-• Detailed intra-year ΔNWC schedule beyond the reported FY2025 YoY ΔNWC (we only use the observed FY2025 ΔNWC as first-year change if selected).  
-• Debt amortization schedule or future interest expense projections (we used consolidated net debt only for EV→Equity conversion).  
-• Share buyback / dilution schedules beyond the diluted weighted shares provided — no forward share-count assumption.  
+• Detailed intra-year change in NWC schedule beyond the reported FY2025 YoY change in NWC (This only uses the observed FY2025 ΔNWC as first-year change if selected).  
+• Debt amortization schedule or future interest expense projections (This uses consolidated net debt only for EV→Equity conversion).  
+• Share buyback / dilution schedules beyond the diluted weighted shares provided.  
 • Deferred tax asset / NOL schedules, pension liabilities, or off-balance-sheet items requiring managerial forecasts.  
-• Segment-level revenue breakdowns and segment-level capex schedules.  
+• granular revenue breakdowns and capex schedules.  
 • Any analyst consensus forecasts or guidance not present in the uploaded FY2025 report.
-
-If you want any of these included, provide the explicit numbers / schedules and I will plug them in without guessing.
 """)
 
 st.markdown("---")
