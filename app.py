@@ -27,7 +27,7 @@ if "base_data" not in st.session_state:
 # -------------------------
 # Sidebar — Base Data Section
 # -------------------------
-with st.sidebar.expander("📊 Company Base Data (FY2025, consolidated)", expanded=False):
+with st.sidebar.expander("Company Base Data (FY2025, consolidated)", expanded=False):
     st.caption("Defaults are Infosys FY2025 consolidated values — editable if you want to override.")
 
     if st.button("Reset to Infosys FY2025 defaults"):
@@ -50,7 +50,7 @@ margins = {
 # -------------------------
 # Sidebar — Line-item Margins Section
 # -------------------------
-with st.sidebar.expander("⚙️ Line-item Margins (defaults from FY2025)", expanded=False):
+with st.sidebar.expander("Line-item Margins (defaults from FY2025)", expanded=False):
     cogs_pct = st.number_input("COGS % of revenue", value=float(margins["cogs_pct"]), format="%.4f")
     sgna_pct = st.number_input("SG&A % of revenue", value=float(margins["sgna_pct"]), format="%.4f")
     rnd_pct = st.number_input("R&D % of revenue", value=float(margins["rnd_pct"]), format="%.4f")
