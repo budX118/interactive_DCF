@@ -156,10 +156,11 @@ fig = px.imshow(
     heatmap_data,
     x=[f"{g:.1%}" for g in tg_range],
     y=[f"{w:.1%}" for w in wacc_range],
-    color_continuous_scale="BrBG",  # blue-white-green diverging
+    color_continuous_scale="YlGnBu",  # softer gradient (yellow-green-blue)
     aspect="auto",
     labels=dict(x="Terminal Growth", y="WACC", color="₹/share"),
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
 
