@@ -230,7 +230,8 @@ st.caption(f"Per-share (equity) value: {per_share_value:,.2f} ₹/share (compute
 st.markdown("---")
 st.subheader("Projection table (line-item)")
 display_df = df[["Year","Revenue","Growth","COGS","SG&A","R&D","EBITDA","D&A","EBIT","NOPAT","CapEx","ΔNWC","FCF","Discount Factor","PV FCF"]].copy()
-st.dataframe(display_df.style.format("{:,.2f}"))
+st.dataframe(display_df)
+
 
 # Charts: Revenue / EBITDA / FCF / PV FCF
 st.subheader("Projections chart")
